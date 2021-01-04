@@ -11,7 +11,7 @@ def update_taskdefinition(db_connection_string):
     # The JSON file, "task_definition.json" gets read, along with the index for the environment
     with open("Task-Definition-Terraform/task_definition.json", 'r+') as j:
         data = json.load(j)
-        for d in data['containerDefinitions'][0]['environment']:
+        for d in data[0]['environment']:
             d['value'] = db_connection_string
     
     # After the index for the environment is read, the JSON file is written to
