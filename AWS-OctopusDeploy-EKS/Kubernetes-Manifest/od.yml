@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: octopusdeploy
+spec:
+  selector:
+    matchLabels:
+      app: octopusdeploy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: octopusdeploy
+    spec:
+      containers:
+      - name: octopusdeploy
+        image: octopusdeploy/octopusdeploy:latest
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: ADMIN_USERNAME
+          value: "admin"
+        - name: ADMIN_PASSWORD
+          value: "SecreTP@assw0rd"
+        - name: DB_CONNECTION_STRING
+          value: "Server=tcp:terraform-20201207161021437200000001.c1ufrgizkeyf.us-east-1.rds.amazonaws.com,1433;Database=terraform-20201207161021437200000001.c1ufrgizkeyf;User Id=mike;Password=PAssw0rd!;"
+        - name: MASTER_KEY
+          value: "ycpG2pV0XYl5dpbFPaIeMw=="
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - name: tasklogs
+            mountPath: /taskLogs
+          - name: artifacts
+            mountPath: /artifacts
+          - name: repository
+            mountPath: /repository
+      volumes:
+        - name: tasklogs
+          persistentVolumeClaim:
+            claimName: efs-claim
+        - name: repository
+          persistentVolumeClaim:
+            claimName: efs-claim
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: efs-claim
+          
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: octopusdeploy
+spec:
+  selector:
+    app: octopusdeploy
+  ports:
+    - port: 8080
+  type: LoadBalancer
