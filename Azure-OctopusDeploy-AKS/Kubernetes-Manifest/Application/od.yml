@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: octopusdeploy
+spec:
+  selector:
+    matchLabels:
+      app: octopusdeploy
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: octopusdeploy
+    spec:
+      containers:
+      - name: octopusdeploy
+        image: octopusdeploy/octopusdeploy:latest
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: ADMIN_USERNAME
+          value: "admin"
+        - name: ADMIN_PASSWORD
+          value: ""
+        - name: DB_CONNECTION_STRING
+          value: ""
+        - name: MASTER_KEY
+          value: ""
+        ports:
+        - containerPort: 8080
+        - containerPort: 10943
+        volumeMounts:
+          - name: tasklogs
+            mountPath: /taskLogs
+          - name: artifacts
+            mountPath: /artifacts
+          - name: repository
+            mountPath: /repository
+
+      volumes:
+        - name: tasklogs
+          azureFile:
+            secretName: azure-secret
+            shareName: tasklogs
+            readOnly: false
+
+        - name: artifacts
+          azureFile:
+            secretName: azure-secret
+            shareName: artifacts
+            readOnly: false
+
+        - name: repository
+          azureFile:
+            secretName: azure-secret
+            shareName: repository
+            readOnly: false
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: octopusdeploy
+spec:
+  selector:
+    app: octopusdeploy
+  ports:
+    - port: 8080
+  type: LoadBalancer
